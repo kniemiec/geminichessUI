@@ -1,0 +1,150 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Getting Started: Spring Boot CLI + Javascript</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <script src="webjars/jquery/2.0.3/jquery.min.js"></script>
+    <script src="webjars/jquery-ui/1.12.0/jquery-ui.min.js"></script>
+
+
+    <script src="ChessBoardCreator.js"></script>
+    <link rel="stylesheet" href="board.css"/>
+</head>
+<body>
+
+    <div id="chessBoardBuilderArea">
+    Przeciagnij figure na wybrane miejsce na szachownicy
+    <table id="chesspieces">
+    <tr>
+    <td id="whitePieces"><img src="/css/icons/chess-icons/wp.png"/><img src="/css/icons/chess-icons/wn.png"/><img src="/css/icons/chess-icons/wb.png"/><img src="/css/icons/chess-icons/wr.png"/><img src="/css/icons/chess-icons/wq.png"/><img src="/css/icons/chess-icons/wk.png"/></td>
+    </tr>
+    <tr>
+    <td id="blackPieces"><img src="/css/icons/chess-icons/bp.png"/><img src="/css/icons/chess-icons/bn.png"/><img src="/css/icons/chess-icons/bb.png"/><img src="/css/icons/chess-icons/br.png"/><img src="/css/icons/chess-icons/bq.png"/><img src="/css/icons/chess-icons/bk.png"/></td>
+    </tr>
+    </table>
+    <div >
+          <span id="trash" class="btn btn-primary"> KOSZ</span>
+          <span><a  id="restart" href="javascript:generator.resetBoard();" >Restart</a></span>
+    </div>
+
+
+    Szachownica do przygotowania pozycji poczatkowej
+    <table id="chessboard">
+    <tr>
+    <td id="00" class="field black"></td>
+    <td id="01" class="field white"></td>
+    <td id="02" class="field black"></td>
+    <td id="03" class="field white"></td>
+    <td id="04" class="field black"></td>
+    <td id="05" class="field white"></td>
+    <td id="06" class="field black"></td>
+    <td id="07" class="field white"></td>
+    </tr>
+    <tr>
+    <td id="10" class="field white"></td>
+    <td id="11" class="field black"></td>
+    <td id="12" class="field white"></td>
+    <td id="13" class="field black"></td>
+    <td id="14" class="field white"></td>
+    <td id="15" class="field black"></td>
+    <td id="16" class="field white"></td>
+    <td id="17" class="field black"></td>
+    </tr>
+    <tr>
+    <td id="20" class="field black"></td>
+    <td id="21" class="field white"></td>
+    <td id="22" class="field black"></td>
+    <td id="23" class="field white"></td>
+    <td id="24" class="field black"></td>
+    <td id="25" class="field white"></td>
+    <td id="26" class="field black"></td>
+    <td id="27" class="field white"></td>
+    </tr>
+    <tr>
+        <td id="30" class="field white"></td>
+        <td id="31" class="field black"></td>
+        <td id="32" class="field white"></td>
+        <td id="33" class="field black"></td>
+        <td id="34" class="field white"></td>
+        <td id="35" class="field black"></td>
+        <td id="36" class="field white"></td>
+        <td id="37" class="field black"></td>
+    </tr>
+    <tr>
+    <td id="40" class="field black"></td>
+    <td id="41" class="field white"></td>
+    <td id="42" class="field black"></td>
+    <td id="43" class="field white"></td>
+    <td id="44" class="field black"></td>
+    <td id="45" class="field white"></td>
+    <td id="46" class="field black"></td>
+    <td id="47" class="field white"></td>
+    </tr>
+    <tr>
+        <td id="50" class="field white"></td>
+        <td id="51" class="field black"></td>
+        <td id="52" class="field white"></td>
+        <td id="53" class="field black"></td>
+        <td id="54" class="field white"></td>
+        <td id="55" class="field black"></td>
+        <td id="56" class="field white"></td>
+        <td id="57" class="field black"></td>
+    </tr>
+    <tr>
+    <td id="60" class="field black"></td>
+    <td id="61" class="field white"></td>
+    <td id="62" class="field black"></td>
+    <td id="63" class="field white"></td>
+    <td id="64" class="field black"></td>
+    <td id="65" class="field white"></td>
+    <td id="66" class="field black"></td>
+    <td id="67" class="field white"></td>
+    </tr>
+    <tr>
+        <td id="70" class="field white"></td>
+        <td id="71" class="field black"></td>
+        <td id="72" class="field white"></td>
+        <td id="73" class="field black"></td>
+        <td id="74" class="field white"></td>
+        <td id="75" class="field black"></td>
+        <td id="76" class="field white"></td>
+        <td id="77" class="field black"></td>
+
+    </tr>
+    </table>
+
+    </div>
+  <!--  <?php $form=$this->beginWidget('CActiveForm', array(
+    			'id'=>'chess-board-form',
+    			'enableAjaxValidation'=>true,
+    )); ?>
+    <div>
+        Opis pozycji poczatkowej
+       <?php
+            echo $form->textArea($plugindata ,'initialState',
+    			array('rows'=>1,'cols'=>40, 'id' => 'fenArea', 'disable' => 'true'));
+
+    	?>
+    </div>
+
+    <div>
+        Kontynuacja rozgrywki
+        <?php
+           echo $form->textArea($plugindata ,'content',
+    			array('rows'=>5,'cols'=>40, 'id' => 'pgnArea'));
+
+    	?>
+
+    </div>
+  -->
+    <script type="text/javascript">
+
+    	var generator = new ChessBoardGenerator({});
+
+        generator.initializeDragAndDrop();
+    	generator.generateInitialBoardPosition();
+    	$("#fenArea").val(generator.generateFENFromPosition());
+
+    </script>ces
+</body>
+</html>
