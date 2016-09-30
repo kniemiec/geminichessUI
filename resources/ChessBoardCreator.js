@@ -1,4 +1,6 @@
+
 function ChessBoardGenerator() {
+	this.CHESS_SERVICE_URL = "http://localhost:9000/move"
 
 	this.ICONS = [
 	              '',
@@ -49,8 +51,9 @@ function ChessBoardGenerator() {
 	                   [0,0,0,0,0,0,0,0],
 	                   [ this.WP, this.WP,this.WP,this.WP,this.WP,this.WP,this.WP,this.WP],
 	                   [ this.WR, this.WN, this.WB, this.WQ, this.WK,  this.WB, this.WN, this.WR],
-	                  ] ;
+	                  ]
 
+this.lastMove = {};
 
 
 }
@@ -66,6 +69,8 @@ ChessBoardGenerator.prototype = {
             //$("img", $draggableWhite).each(function(item){
 //            	alert($(this).attr("src"));
   //          });
+
+					this.initializeGame()
 
             $("img", $draggableWhite).draggable({
                           cancel: "a.ui-icon", // clicking an icon won't initiate dragging
@@ -83,7 +88,7 @@ ChessBoardGenerator.prototype = {
                   cursor: "move"
             });
 
-            putOnBoard = this.putOnBoard;
+            handlePutOnBoard = this.handlePutOnBoard;
             closure = this;
 
             $("td", $chessboard).each(function ( item){
@@ -92,7 +97,7 @@ ChessBoardGenerator.prototype = {
                             accept: "img",
                             //activeClass: "ui-state-highlight",
                             drop: function( event, ui){
-                                putOnBoard( ui.draggable, $(this), closure);
+                                handlePutOnBoard( ui.draggable, $(this), closure);
                             }
 
                         });
@@ -157,6 +162,110 @@ ChessBoardGenerator.prototype = {
 		      cursor: "move"
 		    });
 		},
+
+		convertMovetoDD: function(move){
+			 var map = new Object()
+			 var moveWithoutFigureSymbol = move
+			 if(move.charCodeAt(0) < 97) {
+				 moveWithoutFigureSymbol = move.substring(1)
+			 }
+			 map['fromCol'] =  moveWithoutFigureSymbol.charCodeAt(0) - 97
+			 map['fromRow'] = 8 - parseInt(moveWithoutFigureSymbol.charAt(1))
+			 map['toCol'] =  moveWithoutFigureSymbol.charCodeAt(2) - 97
+			 map['toRow'] = 8 -  parseInt(moveWithoutFigureSymbol.charAt(3))
+			 if(moveWithoutFigureSymbol.length > 4) {
+				 // ther is promotion to another figure
+				 map['promotion'] = moveWithoutFigureSymbol.charAt(4)
+			 }
+			 return map
+		},
+
+
+		convertDDtoMove: function(fromRow, fromCol, toRow, toCol, closure){
+			var figureSymbol = closure.getFigureTranslation(this.boardTemplate[toRow][toCol]).toUpperCase()
+			var fromColSymbol = String.fromCharCode(97+fromCol)
+			var toColSymbol = String.fromCharCode(97+toCol)
+			var fromBoardRow = 8 - fromRow
+			var toBoardRow = 8 - toRow
+			var result = ""
+			if(figureSymbol == 'p'  || figureSymbol == 'P') rsult = ""
+			else result = figureSymbol
+			result = result + fromColSymbol + fromBoardRow + toColSymbol + toBoardRow
+			return result
+		},
+
+		initializeGame: function(){
+			$.ajax({
+				type: 'GET',
+			  url: "http://localhost:9000/move/new",
+			  success: function(data){
+				},
+				xhrFields: {
+      		withCredentials: true
+   			},
+			  dataType: "json",
+				crossDomain: true
+			});
+
+		},
+
+		handleChessServiceRequest: function(moveDescription, closure) {
+			alert('wysłano request')
+			$.ajax({
+			  url: "http://localhost:9000/move/"+moveDescription,
+			  data: "",
+			  success: function(response){
+					closure.handleResponse(response,closure)
+				},
+				xhrFields: {
+				      withCredentials: true
+			  },
+			  dataType: "json",
+				crossDomain: true
+			});
+		},
+
+
+		handleResponse : function(data,closure){
+			alert(data['move'])
+			if(data['move'] == "INVALIDMOVE"){
+        // move piece back
+				$('#'+closure.lastMove['fromParentId']).append(closure.lastMove['pieceMoved'])
+				closure.lastMove['toElement'].empty()
+				closure.lastMove['toElement'].append(closure.lastMove['pieceRemoved'])
+			} else {
+				var responseMap = closure.convertMovetoDD(data['move'])
+				var boardCellFromId = responseMap['fromRow'].toString()+responseMap['fromCol'].toString()
+				var boardCellToId = responseMap['toRow'].toString()+responseMap['toCol'].toString()
+				var fromCell = $("#"+boardCellFromId)
+				var toCell = $("#"+boardCellToId)
+				var movedItem = fromCell.first().clone()
+				fromCell.empty()
+				alert('ok')
+				toCell.empty();
+				toCell.append(movedItem);
+				alert('done')
+			}
+		},
+
+		handlePutOnBoard: function($from, $to, closure){
+			var parentId = $from.parent().attr("id");
+			var fromRow = parseInt(parentId.charAt(0));
+			var fromCol = parseInt(parentId.charAt(1));
+			closure.boardTemplate[fromRow][fromCol] = 0;
+			closure.lastMove['fromParentId'] = parentId
+			closure.lastMove['toElement'] = $to
+			closure.lastMove['pieceMoved'] = $from
+			closure.lastMove['pieceRemoved'] = $to.first().clone()
+			$to.empty();
+			$to.append($from)
+			var toId = $to.attr("id");
+			toRow = parseInt(toId.charAt(0));
+			toCol = parseInt(toId.charAt(1));
+			closure.boardTemplate[toRow][toCol] = closure.getFigureNumberFromIcon( $from.attr("src"));
+			closure.handleChessServiceRequest(closure.convertDDtoMove(fromRow,fromCol, toRow, toCol, closure), closure)
+		},
+
 
 
 	    putOnBoard: function( $draggedItem, $droppableItem, closure){
@@ -288,6 +397,9 @@ ChessBoardGenerator.prototype = {
             }
             return;
         },
+
+
+
 
 	    getFigureTranslation: function( number){
 	        switch (number){
