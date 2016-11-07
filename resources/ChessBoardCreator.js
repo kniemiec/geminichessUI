@@ -1,3 +1,30 @@
+function columnCharToNumber(charCode){
+		return charCode - 97
+};
+
+function columnNumberToChar(columnNumber){
+		return String.fromCharCode(97+columnNumber)
+};
+
+function undoMove(undoMoveData) {
+	alert(undoMoveData.fromElementParentId)
+	alert(undoMoveData.movedPieceType.attr("src"))
+	$('#'+undoMoveData.fromElementParentId).append(undoMoveData.movedPieceType)
+	undoMoveData.toElement.empty()
+	undoMoveData.toElement.append(undoMoveData.removedPieceType)
+};
+
+function UndoMoveData(){
+	this.fromElementParentId = null
+	this.toElement = null
+	this.movedPieceType = null
+	this.removedPieceType = null
+};
+
+UndoMoveData.prototype = {
+
+};
+
 
 function ChessBoardGenerator() {
 	this.CHESS_SERVICE_URL = "http://localhost:9000/move"
@@ -53,7 +80,13 @@ function ChessBoardGenerator() {
 	                   [ this.WR, this.WN, this.WB, this.WQ, this.WK,  this.WB, this.WN, this.WR],
 	                  ]
 
-this.lastMove = {};
+this.lastMoveData = null,
+
+this.lastSpecialMoveData = null,
+
+this.CASTLING_MOVES = [ "Ke1g1", "Ke1c1", "ke8g8", "ke8c8"],
+
+this.CASTLING_PATTERN = [ "Rh1f1" , "Ra1d2", "rh8f8", "ra8d8"];
 
 
 }
@@ -66,11 +99,7 @@ ChessBoardGenerator.prototype = {
             var $draggableBlack = $("#blackPieces");
             var $chessboard = $("#chessboard");
 
-            //$("img", $draggableWhite).each(function(item){
-//            	alert($(this).attr("src"));
-  //          });
-
-					this.initializeGame()
+			this.initializeGame()
 
             $("img", $draggableWhite).draggable({
                           cancel: "a.ui-icon", // clicking an icon won't initiate dragging
@@ -91,11 +120,10 @@ ChessBoardGenerator.prototype = {
             handlePutOnBoard = this.handlePutOnBoard;
             closure = this;
 
-            $("td", $chessboard).each(function ( item){
+            $("td", $chessboard).each(function (item){
                 $(this).droppable(
                         {
                             accept: "img",
-                            //activeClass: "ui-state-highlight",
                             drop: function( event, ui){
                                 handlePutOnBoard( ui.draggable, $(this), closure);
                             }
@@ -115,8 +143,16 @@ ChessBoardGenerator.prototype = {
                 }
             );
 
+
         },
 
+		enableDragAndDrop: function(){
+			$("body").attr("ondragstart","return true;")
+		},
+
+		disableDragAndDrop: function(){
+			$("body").attr("ondragstart","return false;")
+		},
 
         resetBoard: function(){
 			for(var i = 0;i<8;i++){
@@ -169,9 +205,9 @@ ChessBoardGenerator.prototype = {
 			 if(move.charCodeAt(0) < 97) {
 				 moveWithoutFigureSymbol = move.substring(1)
 			 }
-			 map['fromCol'] =  moveWithoutFigureSymbol.charCodeAt(0) - 97
+			 map['fromCol'] =  columnCharToNumber(moveWithoutFigureSymbol.charCodeAt(0))
 			 map['fromRow'] = 8 - parseInt(moveWithoutFigureSymbol.charAt(1))
-			 map['toCol'] =  moveWithoutFigureSymbol.charCodeAt(2) - 97
+			 map['toCol'] =  columnCharToNumber(moveWithoutFigureSymbol.charCodeAt(2))
 			 map['toRow'] = 8 -  parseInt(moveWithoutFigureSymbol.charAt(3))
 			 if(moveWithoutFigureSymbol.length > 4) {
 				 // ther is promotion to another figure
@@ -183,8 +219,8 @@ ChessBoardGenerator.prototype = {
 
 		convertDDtoMove: function(fromRow, fromCol, toRow, toCol, closure){
 			var figureSymbol = closure.getFigureTranslation(this.boardTemplate[toRow][toCol]).toUpperCase()
-			var fromColSymbol = String.fromCharCode(97+fromCol)
-			var toColSymbol = String.fromCharCode(97+toCol)
+			var fromColSymbol = columnNumberToChar(fromCol)
+			var toColSymbol = columnNumberToChar(toCol)
 			var fromBoardRow = 8 - fromRow
 			var toBoardRow = 8 - toRow
 			var result = ""
@@ -210,7 +246,6 @@ ChessBoardGenerator.prototype = {
 		},
 
 		handleChessServiceRequest: function(moveDescription, closure) {
-			alert('wysłano request')
 			$.ajax({
 			  url: "http://localhost:9000/move/"+moveDescription,
 			  data: "",
@@ -225,27 +260,32 @@ ChessBoardGenerator.prototype = {
 			});
 		},
 
-
 		handleResponse : function(data,closure){
-			alert(data['move'])
 			if(data['move'] == "INVALIDMOVE"){
-        // move piece back
-				$('#'+closure.lastMove['fromParentId']).append(closure.lastMove['pieceMoved'])
-				closure.lastMove['toElement'].empty()
-				closure.lastMove['toElement'].append(closure.lastMove['pieceRemoved'])
-			} else {
+				undoMove(closure.lastMoveData)
+				if(closure.lastSpecialMoveData){
+					alert('undo')
+					undoMove(closure.lastSpecialMoveData)
+					closure.lastSpecialMoveData = null
+				}
+				closure.lastMoveData = null
+			} else  {
 				var responseMap = closure.convertMovetoDD(data['move'])
-				var boardCellFromId = responseMap['fromRow'].toString()+responseMap['fromCol'].toString()
-				var boardCellToId = responseMap['toRow'].toString()+responseMap['toCol'].toString()
-				var fromCell = $("#"+boardCellFromId)
-				var toCell = $("#"+boardCellToId)
-				var movedItem = fromCell.first().clone()
-				fromCell.empty()
-				alert('ok')
-				toCell.empty();
-				toCell.append(movedItem);
-				alert('done')
+				closure.visualiseMoveOnBoard(responseMap)
 			}
+			closure.enableDragAndDrop()
+		},
+
+		visualiseMoveOnBoard : function(responseMap) {
+			var boardCellFromId = responseMap['fromRow'].toString()+responseMap['fromCol'].toString()
+			var boardCellToId = responseMap['toRow'].toString()+responseMap['toCol'].toString()
+			var fromCell = $("#"+boardCellFromId)
+			var toCell = $("#"+boardCellToId)
+			var movedItem = fromCell.children(':first-child').clone() 
+			alert('movedItem'+movedItem.attr("id"))
+			fromCell.empty()
+			toCell.empty();
+			toCell.append(movedItem);
 		},
 
 		handlePutOnBoard: function($from, $to, closure){
@@ -253,50 +293,36 @@ ChessBoardGenerator.prototype = {
 			var fromRow = parseInt(parentId.charAt(0));
 			var fromCol = parseInt(parentId.charAt(1));
 			closure.boardTemplate[fromRow][fromCol] = 0;
-			closure.lastMove['fromParentId'] = parentId
-			closure.lastMove['toElement'] = $to
-			closure.lastMove['pieceMoved'] = $from
-			closure.lastMove['pieceRemoved'] = $to.first().clone()
+			closure.lastMoveData = new UndoMoveData()
+			closure.lastMoveData.fromElementParentId = parentId
+			closure.lastMoveData.toElement = $to
+			closure.lastMoveData.movedPieceType = $from
+			closure.lastMoveData.removedPieceType = $to.children(':first-child').clone()
 			$to.empty();
 			$to.append($from)
 			var toId = $to.attr("id");
 			toRow = parseInt(toId.charAt(0));
 			toCol = parseInt(toId.charAt(1));
 			closure.boardTemplate[toRow][toCol] = closure.getFigureNumberFromIcon( $from.attr("src"));
-			closure.handleChessServiceRequest(closure.convertDDtoMove(fromRow,fromCol, toRow, toCol, closure), closure)
+			// check if castling
+			var moveDesc = closure.convertDDtoMove(fromRow,fromCol, toRow, toCol, closure)
+			if(closure.CASTLING_MOVES.indexOf(moveDesc) != -1){
+				var rookMovePattern = closure.CASTLING_PATTERN[closure.CASTLING_MOVES.indexOf(moveDesc)]
+				var rookResponseMap = closure.convertMovetoDD(rookMovePattern)
+				var rookParentId =  (8-parseInt(rookMovePattern.substring(2,3))).toString()+columnCharToNumber(rookMovePattern.substring(1,2).charCodeAt(0))
+				alert(rookParentId)
+				var rookDestinationParentId = (8-parseInt(rookMovePattern.substring(4,5))).toString()+columnCharToNumber(rookMovePattern.substring(3,4).charCodeAt(0))
+				closure.lastSpecialMoveData = new UndoMoveData()
+				closure.lastSpecialMoveData.fromElementParentId = rookParentId
+				closure.lastSpecialMoveData.toElement = $("#"+rookDestinationParentId)
+				closure.lastSpecialMoveData.movedPieceType = $("#"+rookParentId).children(":first-child")
+				closure.lastSpecialMoveData.removedPieceType = $("#"+rookDestinationParentId).children(':first-child').clone()
+				closure.visualiseMoveOnBoard(rookResponseMap)
+			}
+			closure.handleChessServiceRequest(moveDesc, closure)
+
+			closure.disableDragAndDrop()
 		},
-
-
-
-	    putOnBoard: function( $draggedItem, $droppableItem, closure){
-            $parent = $draggedItem.parent();
-            // check whether parent is original panel - then clone
-            var parentId = $draggedItem.parent().attr("id");
-            var $clonedItem = $draggedItem;
-            if(parentId === "whitePieces" || parentId === "blackPieces"){
-                $clonedItem = $draggedItem.clone();
-            } else {
-                var row = parseInt(parentId.charAt(0));
-                var col = parseInt(parentId.charAt(1));
-                closure.boardTemplate[row][col] = 0;
-            }
-	    	$droppableItem.empty();
-		    $droppableItem.append($clonedItem);
-		    var droppableId = $droppableItem.attr("id");
-            row = parseInt(droppableId.charAt(0));
-            col = parseInt(droppableId.charAt(1));
-            closure.boardTemplate[row][col] = closure.getFigureNumberFromIcon( $clonedItem.attr("src"));
-
-            $("#fenArea").val(closure.generateFENFromPosition());
-
-		    $clonedItem.draggable({
-		          cancel: "a.ui-icon", // clicking an icon won't initiate dragging
-		        revert: "invalid", // when not dropped, the item will revert back to its initial position
-		        containment: "document",
-		        helper: "clone",
-		        cursor: "move"
-    		});
-	    },
 
 	    removeFromBoard: function( $draggedItem, $droppableItem, closure){
             $parent = $draggedItem.parent();
