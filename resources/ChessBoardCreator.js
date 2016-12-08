@@ -1,3 +1,6 @@
+var WP = 1;
+var BP = 7;
+
 function columnCharToNumber(charCode){
 		return charCode - 97
 };
@@ -7,22 +10,170 @@ function columnNumberToChar(columnNumber){
 };
 
 function undoMove(undoMoveData) {
-	alert(undoMoveData.fromElementParentId)
-	alert(undoMoveData.movedPieceType.attr("src"))
-	$('#'+undoMoveData.fromElementParentId).append(undoMoveData.movedPieceType)
-	undoMoveData.toElement.empty()
-	undoMoveData.toElement.append(undoMoveData.removedPieceType)
+	$('#'+undoMoveData.fromElementParentId).append(undoMoveData.movedPieceType);
+	undoMoveData.toElement.empty();
+	undoMoveData.removedElement.empty();
+	undoMoveData.removedElement.append(undoMoveData.removedPieceType);
 };
 
+function isPawn(movedPieceType){
+	return movedPieceType == WP ||
+			movedPieceType == BP;
+};
+
+
+function isEnpassantMove(fromId, toId){
+	var fromRow = getRowFrom(fromId);
+	var fromCol = getColFrom(fromId);
+	var toRow = getRowFrom(toId);
+	var toCol = getColFrom(toId);
+	// for white
+	return (
+			((toRow - fromRow) == 1 && (fromCol -1 == toCol || fromCol + 1 == toCol))
+			||
+			((fromRow - toRow) == 1 && (fromCol -1 == toCol || fromCol + 1 == toCol))
+		);
+};
+
+function getColFromId(id){
+	return parseInt(id.charAt(1));
+}
+
+function getRowFromId(id){
+	return parseInt(id.charAt(0));
+}
+
+
+function getId(row,col){
+	return row.toString() + col.toString();
+}
+
+	    function getFigureTranslation( number){
+	        switch (number){
+	            case this.WP : {
+	                return 'P';
+	            }
+	            case this.WN : {
+	                return 'N';
+	            }
+	            case this.WB : {
+	                return 'B';
+	            }
+	            case this.WR : {
+	                return 'R';
+	            }
+	            case this.WQ : {
+	                return 'Q';
+	            }
+	            case this.WK : {
+	                return 'K';
+	            }
+	            case this.BP : {
+	                return 'p';
+	            }
+	            case this.BN : {
+	                return 'n';
+	            }
+	            case this.BB : {
+	                return 'b';
+	            }
+	            case this.BR : {
+	                return 'r';
+	            }
+	            case this.BQ : {
+	                return 'q';
+	            }
+	            case this.BK : {
+	                return 'k';
+	            }
+	        }
+
+	    }
+
+
 function UndoMoveData(){
-	this.fromElementParentId = null
-	this.toElement = null
-	this.movedPieceType = null
-	this.removedPieceType = null
+	this.fromElementParentId = null;
+	this.toElement = null;
+	this.movedPieceType = null;
+	this.removedPieceType = null;
+	this.removedElement = null;
 };
 
 UndoMoveData.prototype = {
 
+};
+
+function FenConverter(){
+
+};
+
+FenConverter.prototype {
+
+		generateFENFromPosition: function(board){
+            var FENDescription = "";
+            for(var i = 0;i<8;i++){
+                var freeFieldsCounter = 0;
+                var line = "";
+                for(var j= 0;j<8;j++){
+                    if(board[i][j]>0){
+                        if(freeFieldsCounter>0){
+                            line = line+freeFieldsCounter;
+                        }
+                        freeFieldsCounter = 0;
+                        line = line + getFigureTranslation(board[i][j]);
+                    } else {
+                        freeFieldsCounter+=1;
+                    }
+                }
+                if(freeFieldsCounter>0){
+                    line = line + freeFieldsCounter;
+                }
+                if(i < 7) { line = line + "/"; }
+                FENDescription = FENDescription + line;
+            }
+            return FENDescription + this.generateFENDescSuffix();
+	    },
+
+
+	    prepareRequestData: function(fen){
+	    	var result = new Object();
+	    	result['fen'] = fen;
+	    	return result;	
+	    },
+
+	    sendFenToBoardRequest: function(fen){
+	    	var callback = this.drawNewBoard;
+	    	var fenData = prepareRequestData(fen);
+			$.ajax({
+				type: "POST",
+			  	url: "http://localhost:9000/fen/fentoboard/"+moveDescription,
+			  	data: { fen: fen},
+			  	success: function(response){
+					callback(response)
+				},				
+			  	dataType: "json",
+	    },
+
+	    generatePositionFromFEN: function(fenString){
+
+
+	    },
+
+        generateFENDescSuffix: function(){
+            var FENSuffix = " ";
+            // fill with default values
+            // whose move
+            FENSuffix = FENSuffix + "w";
+             // switch
+             FENSuffix = FENSuffix + " KQkq";
+             // fly blow
+             FENSuffix = FENSuffix + " -";
+              // ply
+             FENSuffix = FENSuffix + " 0";
+             // full moves
+             FENSuffix = FENSuffix + " 0";
+             return FENSuffix;
+        }
 };
 
 
@@ -264,7 +415,6 @@ ChessBoardGenerator.prototype = {
 			if(data['move'] == "INVALIDMOVE"){
 				undoMove(closure.lastMoveData)
 				if(closure.lastSpecialMoveData){
-					alert('undo')
 					undoMove(closure.lastSpecialMoveData)
 					closure.lastSpecialMoveData = null
 				}
@@ -281,7 +431,7 @@ ChessBoardGenerator.prototype = {
 			var boardCellToId = responseMap['toRow'].toString()+responseMap['toCol'].toString()
 			var fromCell = $("#"+boardCellFromId)
 			var toCell = $("#"+boardCellToId)
-			var movedItem = fromCell.children(':first-child').clone() 
+			var movedItem = fromCell.children(':first-child').clone()
 			alert('movedItem'+movedItem.attr("id"))
 			fromCell.empty()
 			toCell.empty();
@@ -292,12 +442,34 @@ ChessBoardGenerator.prototype = {
 			var parentId = $from.parent().attr("id");
 			var fromRow = parseInt(parentId.charAt(0));
 			var fromCol = parseInt(parentId.charAt(1));
-			closure.boardTemplate[fromRow][fromCol] = 0;
-			closure.lastMoveData = new UndoMoveData()
-			closure.lastMoveData.fromElementParentId = parentId
-			closure.lastMoveData.toElement = $to
-			closure.lastMoveData.movedPieceType = $from
-			closure.lastMoveData.removedPieceType = $to.children(':first-child').clone()
+			if(isPawn(closure.boardTemplate[fromRow][fromCol])){
+				if(isEnPassantMove(parentId, $to.attr("id"))){
+					closure.boardTemplate[fromRow][fromCol] = 0;
+					var enpassantRow = fromRow;
+					var enpassantCol = getColFromId($to.attr("id"));
+					closure.boardTemplate[enpassantRow][enpassantCol] = 0;
+
+					closure.lastMoveData = Object.create( UndoMoveData.prototype);
+					closure.lastMoveData.fromElementParentId = parentId
+					closure.lastMoveData.toElement = $to
+					closure.lastMoveData.movedPieceType = $from
+					closure.lastMoveData.removedElement = $("#"+getId(enpassantRow,enpassantCol));
+					closure.lastMoveData.removedPieceType = closure.lastMoveData.removedElement.children(':first-child').clone()
+
+					// remove pawn that moved before
+					$("#"+closure.lastMoveData.removedElement).empty();
+				} else {
+					// promotion
+				}
+			} else {
+				closure.boardTemplate[fromRow][fromCol] = 0;
+				closure.lastMoveData = Object.create( UndoMoveData.prototype);
+				closure.lastMoveData.fromElementParentId = parentId
+				closure.lastMoveData.toElement = $to
+				closure.lastMoveData.movedPieceType = $from
+				closure.lastMoveData.removedPieceType = $to.children(':first-child').clone()
+				closure.lastMoveData.removedElement = $to
+			}
 			$to.empty();
 			$to.append($from)
 			var toId = $to.attr("id");
@@ -312,9 +484,9 @@ ChessBoardGenerator.prototype = {
 				var rookParentId =  (8-parseInt(rookMovePattern.substring(2,3))).toString()+columnCharToNumber(rookMovePattern.substring(1,2).charCodeAt(0))
 				alert(rookParentId)
 				var rookDestinationParentId = (8-parseInt(rookMovePattern.substring(4,5))).toString()+columnCharToNumber(rookMovePattern.substring(3,4).charCodeAt(0))
-				closure.lastSpecialMoveData = new UndoMoveData()
-				closure.lastSpecialMoveData.fromElementParentId = rookParentId
-				closure.lastSpecialMoveData.toElement = $("#"+rookDestinationParentId)
+				closure.lastSpecialMoveData = new UndoMoveData();
+				closure.lastSpecialMoveData.fromElementParentId = rookParentId;
+				closure.lastSpecialMoveData.toElement = $("#"+rookDestinationParentId);
 				closure.lastSpecialMoveData.movedPieceType = $("#"+rookParentId).children(":first-child")
 				closure.lastSpecialMoveData.removedPieceType = $("#"+rookDestinationParentId).children(':first-child').clone()
 				closure.visualiseMoveOnBoard(rookResponseMap)
@@ -338,49 +510,6 @@ ChessBoardGenerator.prototype = {
     	    	parentItem.empty();
             }
 	    },
-
-
-		generateFENFromPosition: function(){
-            var FENDescription = "";
-            for(var i = 0;i<8;i++){
-                var freeFieldsCounter = 0;
-                var line = "";
-                for(var j= 0;j<8;j++){
-                    if(this.boardTemplate[i][j]>0){
-                        if(freeFieldsCounter>0){
-                            line = line+freeFieldsCounter;
-                        }
-                        freeFieldsCounter = 0;
-                        line = line + this.getFigureTranslation(this.boardTemplate[i][j]);
-                    } else {
-                        freeFieldsCounter+=1;
-                    }
-                }
-                if(freeFieldsCounter>0){
-                    line = line + freeFieldsCounter;
-                }
-                if(i < 7) { line = line + "/"; }
-                FENDescription = FENDescription + line;
-            }
-            return FENDescription + this.generateFENDescSuffix();
-	    },
-
-        generateFENDescSuffix: function(){
-            var FENSuffix = " ";
-            // fill with default values
-            // whose move
-            FENSuffix = FENSuffix + "w";
-             // switch
-             FENSuffix = FENSuffix + " KQkq";
-             // fly blow
-             FENSuffix = FENSuffix + " -";
-              // ply
-             FENSuffix = FENSuffix + " 0";
-             // full moves
-             FENSuffix = FENSuffix + " 0";
-             return FENSuffix;
-        },
-
 
         getFigureNumberFromIcon: function(iconName){
             switch (iconName){
@@ -422,75 +551,6 @@ ChessBoardGenerator.prototype = {
                 }
             }
             return;
-        },
-
-
-
-
-	    getFigureTranslation: function( number){
-	        switch (number){
-	            case this.WP : {
-	                return 'P';
-	            }
-	            case this.WN : {
-	                return 'N';
-	            }
-	            case this.WB : {
-	                return 'B';
-	            }
-	            case this.WR : {
-	                return 'R';
-	            }
-	            case this.WQ : {
-	                return 'Q';
-	            }
-	            case this.WK : {
-	                return 'K';
-	            }
-	            case this.BP : {
-	                return 'p';
-	            }
-	            case this.BN : {
-	                return 'n';
-	            }
-	            case this.BB : {
-	                return 'b';
-	            }
-	            case this.BR : {
-	                return 'r';
-	            }
-	            case this.BQ : {
-	                return 'q';
-	            }
-	            case this.BK : {
-	                return 'k';
-	            }
-	        }
-
-	    }
+        }
 
 };
-
-
-
-/**
- *  Dodanie plugina szachy
- */
-function saveChessPluginData(pluginFormId, generator) {
-//	$fullPgn = '[FEN "'+$fen+'"] ' + $pgn;
-
-	var data =  $(pluginFormId).serialize();
-	$.ajax({
-		type: 'POST',
-		url: 'add',
-		data: data,
-		success: function(data){
-			alert('dane zapisane');
-
-		},
-		error: function(data, textStatus, thrownError){
-			alert('blad w zapisie danych');
-		},
-		dataType: 'html'
-	});
-}

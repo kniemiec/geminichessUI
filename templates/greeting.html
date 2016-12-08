@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Getting Started: Spring Boot CLI + Javascript</title>
+    <title>Chess Game</title>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <script src="webjars/jquery/2.0.3/jquery.min.js"></script>
     <script src="webjars/jquery-ui/1.12.0/jquery-ui.min.js"></script>
@@ -13,20 +13,6 @@
 <body>
 
     <div id="chessBoardBuilderArea">
-    Przeciagnij figure na wybrane miejsce na szachownicy
-    <table id="chesspieces">
-    <tr>
-    <td id="whitePieces"><img src="/css/icons/chess-icons/wp.png"/><img src="/css/icons/chess-icons/wn.png"/><img src="/css/icons/chess-icons/wb.png"/><img src="/css/icons/chess-icons/wr.png"/><img src="/css/icons/chess-icons/wq.png"/><img src="/css/icons/chess-icons/wk.png"/></td>
-    </tr>
-    <tr>
-    <td id="blackPieces"><img src="/css/icons/chess-icons/bp.png"/><img src="/css/icons/chess-icons/bn.png"/><img src="/css/icons/chess-icons/bb.png"/><img src="/css/icons/chess-icons/br.png"/><img src="/css/icons/chess-icons/bq.png"/><img src="/css/icons/chess-icons/bk.png"/></td>
-    </tr>
-    </table>
-    <div >
-          <span id="trash" class="btn btn-primary"> KOSZ</span>
-          <span><a  id="restart" href="javascript:generator.resetBoard();" >Restart</a></span>
-    </div>
-
 
     Szachownica do przygotowania pozycji poczatkowej
     <table id="chessboard">
@@ -114,36 +100,26 @@
     </table>
 
     </div>
-  <!--  <?php $form=$this->beginWidget('CActiveForm', array(
-    			'id'=>'chess-board-form',
-    			'enableAjaxValidation'=>true,
-    )); ?>
-    <div>
-        Opis pozycji poczatkowej
-       <?php
-            echo $form->textArea($plugindata ,'initialState',
-    			array('rows'=>1,'cols'=>40, 'id' => 'fenArea', 'disable' => 'true'));
-
-    	?>
-    </div>
 
     <div>
-        Kontynuacja rozgrywki
-        <?php
-           echo $form->textArea($plugindata ,'content',
-    			array('rows'=>5,'cols'=>40, 'id' => 'pgnArea'));
-
-    	?>
-
+      <input type="text" id="fenArea">
+      <button onclick="javascript:recalculatePosition();"></button>
     </div>
-  -->
+
     <script type="text/javascript">
 
     	var generator = new ChessBoardGenerator({});
 
-        generator.initializeDragAndDrop();
+      generator.initializeDragAndDrop();
     	generator.generateInitialBoardPosition();
-    	$("#fenArea").val(generator.generateFENFromPosition());
+
+      function recalculatePosition(){
+        var fenValue = $("#fenArea").val();
+          if(fenValue != ""){
+            generator.refreshPosition(fenValue);
+          }
+      }
+    	// $("#fenArea").val(generator.generateFENFromPosition());
 
     </script>ces
 </body>
