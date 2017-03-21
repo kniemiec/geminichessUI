@@ -107,7 +107,7 @@ function FenConverter(){
 
 };
 
-FenConverter.prototype {
+FenConverter.prototype = {
 
 		generateFENFromPosition: function(board){
             var FENDescription = "";
@@ -138,24 +138,27 @@ FenConverter.prototype {
 	    prepareRequestData: function(fen){
 	    	var result = new Object();
 	    	result['fen'] = fen;
+	    	result['board'] = "text board";
 	    	return result;	
 	    },
 
-	    sendFenToBoardRequest: function(fen){
-	    	var callback = this.drawNewBoard;
-	    	var fenData = prepareRequestData(fen);
+	    sendFenToBoardRequest: function(fen,callback){
+	    	var fenData = this.prepareRequestData(fen);
+	    	var context = this;
 			$.ajax({
 				type: "POST",
-			  	url: "http://localhost:9000/fen/fentoboard/"+moveDescription,
-			  	data: { fen: fen},
+			  	url: "http://localhost:9000/fen/fentoboard", ///"+moveDescription,
+			  	data: JSON.stringify(fenData),//{ "fen": fen, "board" : "Text board"},
+			  	contentType: "application/json; charset=utf-8",
 			  	success: function(response){
-					callback(response)
+					callback(response,context)
 				},				
-			  	dataType: "json",
+			  	dataType: "json"
+			  });
 	    },
 
-	    generatePositionFromFEN: function(fenString){
-
+	    generatePositionFromFEN: function(fenString, callback){
+	    	var test;
 
 	    },
 
@@ -551,6 +554,67 @@ ChessBoardGenerator.prototype = {
                 }
             }
             return;
-        }
+        },
+
+			// var board  = new Array();
+			// for(var i = 0;i<8;i++){
+			// 	board[i] = new Array();
+			// 	for(var j=0;j<8;j++){
+			// 	    if( this.boardTemplate[i][j] > 0){
+			// 	        $element = this.ICONS[ this.boardTemplate[i][j] ].clone();
+			// 	        this.makeElementDraggable($element);
+			// 		    board[i][j]= $element;
+			// 		}
+			// 	}
+			// }
+
+
+	    getFigureFromChar : function( charValue){
+	        switch (charValue){
+	            case 'P' :  return this.WP;
+	            case 'N' :  return this.WN;
+	            case 'B' : return this.WB;
+	            case 'R' : return this.WR;
+	            case 'Q' : return this.WQ;
+	            case 'K' : return this.WK;
+	            case 'p' : return this.BP;
+	            case 'n' : return this.BN;
+	            case 'b' : return this.BB;
+	            case 'r' : return this.BR;
+	            case 'q' : return this.BQ;
+	            case 'k' : return this.BK;
+	            default : null;
+	        }
+	    },
+
+	    prepareBoardToDraw : function(boardOfChars){
+        	var board = new Array();
+        	for(var i = 0;i<8;i++){
+        		board[i] = new Array();
+        		for(var j=0;j<8;j++){
+        			var piece = getFigureFromChar(boardOfChars.charAt(8*i+j)); 
+        			if(piece != null){
+        				var $element = this.ICONS[piece].clone();
+        				this.makeElementDraggable($element);
+        				board[i][j] = $element;
+        			}
+        		}
+        	}
+        	return board;
+	    },
+
+        drawFromBoard : function(responseData,context){
+        	// first prepare board
+        	alert(context);
+        	context.prepareBoardToDraw(responseData);
+        	// then draw it using existing functions	
+			drawBoard( $("#chessboard"), board);
+
+        },
+
+		drawBoardFromFen: function(fen){
+			var fenConverter = new FenConverter();
+			fenConverter.sendFenToBoardRequest(fen,this.drawFromBoard);
+		}        
 
 };

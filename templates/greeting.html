@@ -102,8 +102,8 @@
     </div>
 
     <div>
-      <input type="text" id="fenArea">
-      <button onclick="javascript:recalculatePosition();"></button>
+      <input type="text" id="fenArea"/>
+      <button onclick="javascript:recalculatePosition();">Uzyj pozycji</button>
     </div>
 
     <script type="text/javascript">
@@ -116,7 +116,7 @@
       function recalculatePosition(){
         var fenValue = $("#fenArea").val();
           if(fenValue != ""){
-            generator.refreshPosition(fenValue);
+            generator.drawBoardFromFen(fenValue);
           }
       }
     	// $("#fenArea").val(generator.generateFENFromPosition());
