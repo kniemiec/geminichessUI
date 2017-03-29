@@ -1,6 +1,41 @@
 var WP = 1;
 var BP = 7;
 
+function ChessBoard(){
+
+};
+
+ChessBoard.ICONS = [
+	              '',
+	              jQuery('<img/>', { src: "/css/icons/chess-icons/wp.png"  }),
+	              jQuery('<img/>', { src: "/css/icons/chess-icons/wn.png"  }),
+	              jQuery('<img/>', { src: "/css/icons/chess-icons/wb.png"  }),
+	              jQuery('<img/>', { src: "/css/icons/chess-icons/wr.png"  }),
+	              jQuery('<img/>', { src: "/css/icons/chess-icons/wq.png"  }),
+	              jQuery('<img/>', { src: "/css/icons/chess-icons/wk.png"  }),
+	              jQuery('<img/>', { src: "/css/icons/chess-icons/bp.png"  }),
+	              jQuery('<img/>', { src: "/css/icons/chess-icons/bn.png"  }),
+	              jQuery('<img/>', { src: "/css/icons/chess-icons/bb.png"  }),
+	              jQuery('<img/>', { src: "/css/icons/chess-icons/br.png"  }),
+	              jQuery('<img/>', { src: "/css/icons/chess-icons/bq.png"  }),
+	              jQuery('<img/>', { src: "/css/icons/chess-icons/bk.png"  })
+	              ];
+
+
+ChessBoard.drawBoard = 		function( $boardArea, boardPresentation){
+			$("tr", $boardArea).each( function(row){
+				var tr = this;
+				$(tr).children().each(function( col){
+					$(this).empty();
+					$(this).append(boardPresentation[row][col]);
+				});
+			});
+		};
+
+ChessBoard.prototype = {
+	
+};
+
 function columnCharToNumber(charCode){
 		return charCode - 97
 };
@@ -107,6 +142,54 @@ function FenConverter(){
 
 };
 
+	    function getFigureFromChar( charValue){
+	        switch (charValue){
+	            case 'P' :  return this.WP;
+	            case 'N' :  return this.WN;
+	            case 'B' : return this.WB;
+	            case 'R' : return this.WR;
+	            case 'Q' : return this.WQ;
+	            case 'K' : return this.WK;
+	            case 'p' : return this.BP;
+	            case 'n' : return this.BN;
+	            case 'b' : return this.BB;
+	            case 'r' : return this.BR;
+	            case 'q' : return this.BQ;
+	            case 'k' : return this.BK;
+	            default : null;
+	        }
+	    };
+
+
+
+
+		function makeElementDraggable($element){
+		    $element.draggable({
+		      cancel: "a.ui-icon", // clicking an icon won't initiate dragging
+		      revert: "invalid", // when not dropped, the item will revert back to its initial position
+		      containment: "document",
+		      helper: "clone",
+		      cursor: "move"
+		    });
+		};
+
+
+	    function prepareBoardToDraw(boardOfChars){
+        	var board = new Array();
+        	for(var i = 0;i<8;i++){
+        		board[i] = new Array();
+        		for(var j=0;j<8;j++){
+        			var piece = getFigureFromChar(boardOfChars.charAt(8*i+j)); 
+        			if(piece != null){
+        				var $element = ChessBoard.ICONS[piece].clone();
+        				makeElementDraggable($element);
+        				board[i][j] = $element;
+        			}
+        		}
+        	}
+        	return board;
+	    };
+
 FenConverter.prototype = {
 
 		generateFENFromPosition: function(board){
@@ -144,15 +227,17 @@ FenConverter.prototype = {
 
 	    sendFenToBoardRequest: function(fen,callback){
 	    	var fenData = this.prepareRequestData(fen);
-	    	var context = this;
 			$.ajax({
 				type: "POST",
 			  	url: "http://localhost:9000/fen/fentoboard", ///"+moveDescription,
 			  	data: JSON.stringify(fenData),//{ "fen": fen, "board" : "Text board"},
 			  	contentType: "application/json; charset=utf-8",
 			  	success: function(response){
-					callback(response,context)
-				},				
+			  		// var context = this
+			  		// this.drawFromBoard(response);
+					callback(response)
+				},
+				context: this,				
 			  	dataType: "json"
 			  });
 	    },
@@ -325,7 +410,7 @@ ChessBoardGenerator.prototype = {
 				for(var j=0;j<8;j++){
 				    if( this.boardTemplate[i][j] > 0){
 				        $element = this.ICONS[ this.boardTemplate[i][j] ].clone();
-				        this.makeElementDraggable($element);
+				        makeElementDraggable($element);
 					    board[i][j]= $element;
 					}
 				}
@@ -343,15 +428,6 @@ ChessBoardGenerator.prototype = {
 			});
 		},
 
-		makeElementDraggable: function ($element){
-		    $element.draggable({
-		      cancel: "a.ui-icon", // clicking an icon won't initiate dragging
-		      revert: "invalid", // when not dropped, the item will revert back to its initial position
-		      containment: "document",
-		      helper: "clone",
-		      cursor: "move"
-		    });
-		},
 
 		convertMovetoDD: function(move){
 			 var map = new Object()
@@ -587,28 +663,12 @@ ChessBoardGenerator.prototype = {
 	        }
 	    },
 
-	    prepareBoardToDraw : function(boardOfChars){
-        	var board = new Array();
-        	for(var i = 0;i<8;i++){
-        		board[i] = new Array();
-        		for(var j=0;j<8;j++){
-        			var piece = getFigureFromChar(boardOfChars.charAt(8*i+j)); 
-        			if(piece != null){
-        				var $element = this.ICONS[piece].clone();
-        				this.makeElementDraggable($element);
-        				board[i][j] = $element;
-        			}
-        		}
-        	}
-        	return board;
-	    },
-
-        drawFromBoard : function(responseData,context){
+        drawFromBoard : function(responseData){
         	// first prepare board
-        	alert(context);
-        	context.prepareBoardToDraw(responseData);
+        	alert(this);
+        	var board = prepareBoardToDraw(responseData);
         	// then draw it using existing functions	
-			drawBoard( $("#chessboard"), board);
+			ChessBoard.drawBoard( $("#chessboard"), board);
 
         },
 
