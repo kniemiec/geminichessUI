@@ -7,7 +7,9 @@
     <script src="webjars/jquery-ui/1.12.0/jquery-ui.min.js"></script>
 
 
-    <script src="ChessBoardCreator.js"></script>
+   <!-- <script src="ChessBoardCreator.js"></script>-->
+    <script src="ChessBoard.js"></script>
+    <script src="ChessUi.js"></script>    
     <link rel="stylesheet" href="board.css"/>
 </head>
 <body>
@@ -107,18 +109,21 @@
     </div>
 
     <script type="text/javascript">
+    var board = chessBoard();
+    alert(board);
+    var chess = chessUi(board);
+    chess.initializeDragAndDrop();
+    	// var generator = new ChessBoardGenerator({});
 
-    	var generator = new ChessBoardGenerator({});
+     //  generator.initializeDragAndDrop();
+    	// generator.generateInitialBoardPosition();
 
-      generator.initializeDragAndDrop();
-    	generator.generateInitialBoardPosition();
-
-      function recalculatePosition(){
-        var fenValue = $("#fenArea").val();
-          if(fenValue != ""){
-            generator.drawBoardFromFen(fenValue);
-          }
-      }
+     //  function recalculatePosition(){
+     //    var fenValue = $("#fenArea").val();
+     //      if(fenValue != ""){
+     //        generator.drawBoardFromFen(fenValue);
+     //      }
+     //  }
     	// $("#fenArea").val(generator.generateFENFromPosition());
 
     </script>ces
