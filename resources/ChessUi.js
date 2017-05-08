@@ -1,6 +1,78 @@
+function UndoMoveData(){
+	this.fromElementParentId = null;
+	this.toElement = null;
+	this.movedPieceType = null;
+	this.removedPieceType = null;
+	this.removedElement = null;
+};
+
 var chessUi = function(chessboard){
 
+	var CASTLING_MOVES = [ "Ke1g1", "Ke1c1", "ke8g8", "ke8c8"];
+
+	var CASTLING_PATTERN = [ "Rh1f1" , "Ra1d2", "rh8f8", "ra8d8"];	
+
 	var boardTemplate;
+
+	var lastMoveData;
+
+	var undoMove = function (undoMoveData) {
+		$('#'+undoMoveData.fromElementParentId).append(undoMoveData.movedPieceType);
+		undoMoveData.toElement.empty();
+		undoMoveData.removedElement.empty();
+		undoMoveData.removedElement.append(undoMoveData.removedPieceType);
+	};
+
+	var handleChessServiceRequest = function(moveDescription, closure) {
+			$.ajax({
+			  url: "http://localhost:9000/move/"+moveDescription,
+			  data: "",
+			  success: function(response){
+					handleResponse(response,closure)
+				},
+				xhrFields: {
+				      withCredentials: true
+			  },
+			  dataType: "json",
+				crossDomain: true
+			});
+		};
+
+	var handleResponse = function(data){
+			if(data['move'] == "INVALIDMOVE"){
+				alert[lastMoveData.fromElementParentId];
+				undoMove(lastMoveData)
+				if(lastSpecialMoveData){
+					undoMove(lastSpecialMoveData)
+					lastSpecialMoveData = null
+				}
+				lastMoveData = null
+			} else  {
+				var responseMap = chessboard.convertMovetoDD(data['move'])
+				visualiseMoveOnBoard(responseMap)
+			}
+			enableDragAndDrop()
+		};		
+
+	var visualiseMoveOnBoard = function(responseMap) {
+			var boardCellFromId = responseMap['fromRow'].toString()+responseMap['fromCol'].toString()
+			var boardCellToId = responseMap['toRow'].toString()+responseMap['toCol'].toString()
+			var fromCell = $("#"+boardCellFromId)
+			var toCell = $("#"+boardCellToId)
+			var movedItem = fromCell.children(':first-child').clone()
+			alert('movedItem'+movedItem.attr("id"))
+			fromCell.empty()
+			toCell.empty();
+			toCell.append(movedItem);
+	};
+
+	var enableDragAndDrop =function(){
+		$("body").attr("ondragstart","return true;")
+	};
+
+	var	disableDragAndDrop =function(){
+		$("body").attr("ondragstart","return false;")
+	};
 
 	var handlePutOnBoard = function($from, $to){
 			var parentId = $from.parent().attr("id");
@@ -8,57 +80,57 @@ var chessUi = function(chessboard){
 			var fromCol = parseInt(parentId.charAt(1));
 			// board template is empty TODO
 			if(chessboard.isPawn(boardTemplate[fromRow][fromCol])){
-				if(ChessBoard.isEnPassantMove(parentId, $to.attr("id"))){
+				if(chessboard.isEnPassantMove(parentId, $to.attr("id"))){
 					boardTemplate[fromRow][fromCol] = 0;
 					var enpassantRow = fromRow;
 					var enpassantCol = getColFromId($to.attr("id"));
-					closure.boardTemplate[enpassantRow][enpassantCol] = 0;
+					boardTemplate[enpassantRow][enpassantCol] = 0;
 
-					generator.lastMoveData = Object.create( UndoMoveData.prototype);
-					generator.lastMoveData.fromElementParentId = parentId
-					generator.lastMoveData.toElement = $to
-					generator.lastMoveData.movedPieceType = $from
-					generator.lastMoveData.removedElement = $("#"+getId(enpassantRow,enpassantCol));
-					generator.lastMoveData.removedPieceType = generator.lastMoveData.removedElement.children(':first-child').clone()
+					lastMoveData = Object.create( UndoMoveData.prototype);
+					lastMoveData.fromElementParentId = parentId
+					lastMoveData.toElement = $to
+					lastMoveData.movedPieceType = $from
+					lastMoveData.removedElement = $("#"+getId(enpassantRow,enpassantCol));
+					lastMoveData.removedPieceType = lastMoveData.removedElement.children(':first-child').clone()
 
 					// remove pawn that moved before
-					$("#"+generator.lastMoveData.removedElement).empty();
+					$("#"+lastMoveData.removedElement).empty();
 				} else {
 					// promotion
 				}
 			} else {
-				generator.boardTemplate[fromRow][fromCol] = 0;
-				generator.lastMoveData = Object.create( UndoMoveData.prototype);
-				generator.lastMoveData.fromElementParentId = parentId
-				generator.lastMoveData.toElement = $to
-				generator.lastMoveData.movedPieceType = $from
-				generator.lastMoveData.removedPieceType = $to.children(':first-child').clone()
-				generator.lastMoveData.removedElement = $to
+				boardTemplate[fromRow][fromCol] = 0;
+				lastMoveData = Object.create( UndoMoveData.prototype);
+				lastMoveData.fromElementParentId = parentId
+				lastMoveData.toElement = $to
+				lastMoveData.movedPieceType = $from
+				lastMoveData.removedPieceType = $to.children(':first-child').clone()
+				lastMoveData.removedElement = $to
 			}
 			$to.empty();
 			$to.append($from)
 			var toId = $to.attr("id");
 			toRow = parseInt(toId.charAt(0));
 			toCol = parseInt(toId.charAt(1));
-			generator.boardTemplate[toRow][toCol] = generator.getFigureNumberFromIcon( $from.attr("src"));
+			boardTemplate[toRow][toCol] = chessboard.getFigureNumberFromIcon( $from.attr("src"));
 			// check if castling
-			var moveDesc = closure.convertDDtoMove(fromRow,fromCol, toRow, toCol, closure)
-			if(generator.CASTLING_MOVES.indexOf(moveDesc) != -1){
-				var rookMovePattern = closure.CASTLING_PATTERN[closure.CASTLING_MOVES.indexOf(moveDesc)]
-				var rookResponseMap = closure.convertMovetoDD(rookMovePattern)
+			var moveDesc = chessboard.convertDDtoMove(fromRow,fromCol, toRow, toCol, boardTemplate[toRow][toCol])
+			if(CASTLING_MOVES.indexOf(moveDesc) != -1){
+				var rookMovePattern = CASTLING_PATTERN[CASTLING_MOVES.indexOf(moveDesc)]
+				var rookResponseMap = convertMovetoDD(rookMovePattern)
 				var rookParentId =  (8-parseInt(rookMovePattern.substring(2,3))).toString()+columnCharToNumber(rookMovePattern.substring(1,2).charCodeAt(0))
 				alert(rookParentId)
 				var rookDestinationParentId = (8-parseInt(rookMovePattern.substring(4,5))).toString()+columnCharToNumber(rookMovePattern.substring(3,4).charCodeAt(0))
-				generator.lastSpecialMoveData = new UndoMoveData();
-				generator.lastSpecialMoveData.fromElementParentId = rookParentId;
-				generator.lastSpecialMoveData.toElement = $("#"+rookDestinationParentId);
-				generator.lastSpecialMoveData.movedPieceType = $("#"+rookParentId).children(":first-child")
-				generator.lastSpecialMoveData.removedPieceType = $("#"+rookDestinationParentId).children(':first-child').clone()
-				generator.visualiseMoveOnBoard(rookResponseMap)
+				lastSpecialMoveData = new UndoMoveData();
+				lastSpecialMoveData.fromElementParentId = rookParentId;
+				lastSpecialMoveData.toElement = $("#"+rookDestinationParentId);
+				lastSpecialMoveData.movedPieceType = $("#"+rookParentId).children(":first-child")
+				lastSpecialMoveData.removedPieceType = $("#"+rookDestinationParentId).children(':first-child').clone()
+				chessboard.visualiseMoveOnBoard(rookResponseMap)
 			}
-			generator.handleChessServiceRequest(moveDesc, generator)
+			handleChessServiceRequest(moveDesc);
 
-			generator.disableDragAndDrop()
+			disableDragAndDrop()
 		};
 
 		var	initializeGame = function(){
