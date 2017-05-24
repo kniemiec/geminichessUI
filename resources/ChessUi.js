@@ -51,7 +51,7 @@ var chessUi = function(chessboard){
 				var responseMap = chessboard.convertMovetoDD(data['move'])
 				visualiseMoveOnBoard(responseMap)
 			}
-			enableDragAndDrop()
+			chessboard.blockMoving();
 		};		
 
 	var visualiseMoveOnBoard = function(responseMap) {
@@ -66,13 +66,7 @@ var chessUi = function(chessboard){
 			toCell.append(movedItem);
 	};
 
-	var enableDragAndDrop =function(){
-		$("body").attr("ondragstart","return true;")
-	};
 
-	var	disableDragAndDrop =function(){
-		$("body").attr("ondragstart","return false;")
-	};
 
 	var handlePutOnBoard = function($from, $to){
 			var parentId = $from.parent().attr("id");
@@ -130,7 +124,7 @@ var chessUi = function(chessboard){
 			}
 			handleChessServiceRequest(moveDesc);
 
-			disableDragAndDrop()
+			chessboard.disableDragAndDrop()
 		};
 
 		var	initializeGame = function(){
@@ -150,60 +144,8 @@ var chessUi = function(chessboard){
 
 
 	return {
-        initializeDragAndDrop: function(){
-        	boardTemplate = chessboard.generateInitialBoardPosition();
-        	chessboard.drawBoard($("#chessboard"),boardTemplate);
-
-            var $draggableWhite = $("#whitePieces");
-            var $draggableBlack = $("#blackPieces");
-            var $chessboard = $("#chessboard");
-
-			initializeGame();
-
-            $("img", $draggableWhite).draggable({
-                          cancel: "a.ui-icon", // clicking an icon won't initiate dragging
-                          revert: "invalid", // when not dropped, the item will revert back to its initial position
-                          containment: "document",
-                          helper: "clone",
-                          cursor: "move"
-                    });
-
-            $("img", $draggableBlack).draggable({
-                  cancel: "a.ui-icon", // clicking an icon won't initiate dragging
-                  revert: "invalid", // when not dropped, the item will revert back to its initial position
-                  containment: "document",
-                  helper: "clone",
-                  cursor: "move"
-            });
-
-            // handlePutOnBoard = this.handlePutOnBoard;
-            alert("test");
-
-            $("td", $chessboard).each(function (item){
-                $(this).droppable(
-                        {
-                            accept: "img",
-                            drop: function( event, ui){
-                            	alert("yes");
-                                handlePutOnBoard( ui.draggable, $(this));
-                            }
-
-                        });
-            });
-
-            removeFromBoard = this.removeFromBoard;
-
-            $("#trash").droppable(
-                {
-                    accept: "img",
-                    drop: function( event, ui){
-                        removeFromBoard( ui.draggable, $(this), closure);
-                    }
-
-                }
-            );
-
-
+        initializeChess: function(){
+        	chessboard.initializeDragAndDrop();
         },		
 		
 	}

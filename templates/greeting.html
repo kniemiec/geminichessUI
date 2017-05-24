@@ -110,20 +110,20 @@
 
     <script type="text/javascript">
     var board = chessBoard();
-    alert(board);
+
     var chess = chessUi(board);
-    chess.initializeDragAndDrop();
+    chess.initializeBoard();
     	// var generator = new ChessBoardGenerator({});
 
      //  generator.initializeDragAndDrop();
     	// generator.generateInitialBoardPosition();
 
-     //  function recalculatePosition(){
-     //    var fenValue = $("#fenArea").val();
-     //      if(fenValue != ""){
-     //        generator.drawBoardFromFen(fenValue);
-     //      }
-     //  }
+       function recalculatePosition(){
+         var fenValue = $("#fenArea").val();
+           if(fenValue != ""){
+             chess.drawBoardFromFen(fenValue);
+           }
+       }
     	// $("#fenArea").val(generator.generateFENFromPosition());
 
     </script>ces

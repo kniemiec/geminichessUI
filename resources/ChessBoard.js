@@ -1,4 +1,4 @@
-var chessBoard = function(){
+var chessBoard = function(boardRepresentation){
 
 	WP = 1;
 	WN = 2;
@@ -106,6 +106,15 @@ var chessBoard = function(){
 
 
 	return {
+        initializeBoard: function(dropOnBoardCallback){
+        	boardTemplate = chessboard.generateInitialBoardPosition();
+        	chessboard.drawBoard($("#chessboard"),boardTemplate);
+
+			boardRepresentation.initializeDragAndDrop(dropOnBoardCallback);
+
+        },		
+
+
 		convertMovetoDD: function(move){
 			 var map = new Object()
 			 var moveWithoutFigureSymbol = move
@@ -221,15 +230,8 @@ var chessBoard = function(){
 			toCell.append(movedItem);
 		},
 
-		drawBoard: function( $boardArea, boardPresentation){
-			alert("drawing");
-			$("tr", $boardArea).each( function(row){
-				var tr = this;
-				$(tr).children().each(function( col){
-					$(this).empty();
-					$(this).append(boardPresentation[row][col]);
-				});
-			});
+		blockMoving : function(){
+			boardRepresentation.enableDragAndDrop();
 		}
 	};
 };
