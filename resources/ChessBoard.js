@@ -218,7 +218,7 @@ var chessBoard = function(boardRepresentation){
         },
 
 
-		visualiseMoveOnBoard : function(responseMap) {
+		showMove : function(responseMap) {
 			var boardCellFromId = responseMap['fromRow'].toString()+responseMap['fromCol'].toString()
 			var boardCellToId = responseMap['toRow'].toString()+responseMap['toCol'].toString()
 			var fromCell = $("#"+boardCellFromId)
@@ -228,6 +228,13 @@ var chessBoard = function(boardRepresentation){
 			fromCell.empty()
 			toCell.empty();
 			toCell.append(movedItem);
+		},
+
+		undoMove : function(undoMoveData) {
+			$('#'+undoMoveData.fromElementParentId).append(undoMoveData.movedPieceType);
+			undoMoveData.toElement.empty();
+			undoMoveData.removedElement.empty();
+			undoMoveData.removedElement.append(undoMoveData.removedPieceType);
 		},
 
 		blockMoving : function(){

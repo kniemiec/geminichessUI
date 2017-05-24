@@ -16,19 +16,13 @@ var chessUi = function(chessboard){
 
 	var lastMoveData;
 
-	var undoMove = function (undoMoveData) {
-		$('#'+undoMoveData.fromElementParentId).append(undoMoveData.movedPieceType);
-		undoMoveData.toElement.empty();
-		undoMoveData.removedElement.empty();
-		undoMoveData.removedElement.append(undoMoveData.removedPieceType);
-	};
-
-	var handleChessServiceRequest = function(moveDescription, closure) {
+	// @TODO - should be PUT
+	var sendMove = function(moveDescription, closure) {
 			$.ajax({
 			  url: "http://localhost:9000/move/"+moveDescription,
 			  data: "",
 			  success: function(response){
-					handleResponse(response,closure)
+					receiveMove(response,closure)
 				},
 				xhrFields: {
 				      withCredentials: true
@@ -38,34 +32,20 @@ var chessUi = function(chessboard){
 			});
 		};
 
-	var handleResponse = function(data){
+	var receiveMove = function(data){
 			if(data['move'] == "INVALIDMOVE"){
-				alert[lastMoveData.fromElementParentId];
-				undoMove(lastMoveData)
+				chessboard.undoMove(lastMoveData)
 				if(lastSpecialMoveData){
-					undoMove(lastSpecialMoveData)
+					chessboard.undoMove(lastSpecialMoveData)
 					lastSpecialMoveData = null
 				}
 				lastMoveData = null
 			} else  {
 				var responseMap = chessboard.convertMovetoDD(data['move'])
-				visualiseMoveOnBoard(responseMap)
+				chessboard.showMove(responseMap)
 			}
 			chessboard.blockMoving();
 		};		
-
-	var visualiseMoveOnBoard = function(responseMap) {
-			var boardCellFromId = responseMap['fromRow'].toString()+responseMap['fromCol'].toString()
-			var boardCellToId = responseMap['toRow'].toString()+responseMap['toCol'].toString()
-			var fromCell = $("#"+boardCellFromId)
-			var toCell = $("#"+boardCellToId)
-			var movedItem = fromCell.children(':first-child').clone()
-			alert('movedItem'+movedItem.attr("id"))
-			fromCell.empty()
-			toCell.empty();
-			toCell.append(movedItem);
-	};
-
 
 
 	var handlePutOnBoard = function($from, $to){
@@ -120,14 +100,15 @@ var chessUi = function(chessboard){
 				lastSpecialMoveData.toElement = $("#"+rookDestinationParentId);
 				lastSpecialMoveData.movedPieceType = $("#"+rookParentId).children(":first-child")
 				lastSpecialMoveData.removedPieceType = $("#"+rookDestinationParentId).children(':first-child').clone()
-				chessboard.visualiseMoveOnBoard(rookResponseMap)
+				chessboard.showMove(rookResponseMap)
 			}
-			handleChessServiceRequest(moveDesc);
+			sendMove(moveDesc);
 
-			chessboard.disableDragAndDrop()
+			chessboard.blockMoving();
 		};
 
-		var	initializeGame = function(){
+		// @TODO - should be POST
+		var	sendNewGameRequest = function(){
 			$.ajax({
 				type: 'GET',
 			  url: "http://localhost:9000/move/new",
@@ -145,7 +126,8 @@ var chessUi = function(chessboard){
 
 	return {
         initializeChess: function(){
-        	chessboard.initializeDragAndDrop();
+        	chessboard.initializeBoard(handlePutOnBoard);
+        	sendNewGameRequest();
         },		
 		
 	}

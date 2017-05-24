@@ -76,13 +76,6 @@ function columnNumberToChar(columnNumber){
 		return String.fromCharCode(97+columnNumber)
 };
 
-function undoMove(undoMoveData) {
-	$('#'+undoMoveData.fromElementParentId).append(undoMoveData.movedPieceType);
-	undoMoveData.toElement.empty();
-	undoMoveData.removedElement.empty();
-	undoMoveData.removedElement.append(undoMoveData.removedPieceType);
-};
-
 function isPawn(movedPieceType){
 	return movedPieceType == WP ||
 			movedPieceType == BP;
@@ -408,16 +401,11 @@ this.CASTLING_MOVES = [ "Ke1g1", "Ke1c1", "ke8g8", "ke8c8"],
 this.CASTLING_PATTERN = [ "Rh1f1" , "Ra1d2", "rh8f8", "ra8d8"];
 
 
-  if (arguments.callee._singletonInstance) {
-    return arguments.callee._singletonInstance;
-  }
-
-  arguments.callee._singletonInstance = this;
-
 }
 
 ChessBoardGenerator.prototype = {
 
+		// OK
         initializeDragAndDrop: function(){
 
             var $draggableWhite = $("#whitePieces");
@@ -479,6 +467,8 @@ ChessBoardGenerator.prototype = {
 			$("body").attr("ondragstart","return false;")
 		},
 
+
+// OK
         resetBoard: function(){
 			for(var i = 0;i<8;i++){
 				for(var j=0;j<8;j++){
@@ -489,6 +479,7 @@ ChessBoardGenerator.prototype = {
         	this.generateInitialBoardPosition();
         },
 
+        // OK
 		generateInitialBoardPosition: function(){
 			var board  = new Array();
 			for(var i = 0;i<8;i++){
@@ -504,6 +495,7 @@ ChessBoardGenerator.prototype = {
 			this.drawBoard( $("#chessboard"), board);
 		},
 
+		// OK
 		drawBoard: function( $boardArea, boardPresentation){
 			$("tr", $boardArea).each( function(row){
 				var tr = this;
