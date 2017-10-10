@@ -1,0 +1,143 @@
+Dziedziczenie
+
+W poprzednich lekcjach dowiedzieliśmy się co to jest klasa  - czyli pewien przepis na strukturę przechowywującą
+dane ale także potrafiącą operować na tych danych. Dodatkowo poznaliśmy obiekt - czyli swego rodzaju egzemplarz klasy.
+Konstrukcje te zostały stworzonew językach programowania między innymi dlatego że dobrze modelują rzeczywistość, która składa
+się z obiektów stanowiących pewną zamkniętą całość.
+Ale wiemy że obiekty występujące w rzeczywistości potrafią być bardziej skomplikowane i równocześnie podobne do siebie,
+i często mówić o takich podobnych obiektach nazywamy je w taki sam sposób. Jest to byc może niejasne więc użyjmy przykładu.
+
+Mamy obiekt Pojazd. Od razu wiemy co on reprezentuje pewne urządzenie które potrafi się poruszać. Wiemy jakie są ogólne cechy pojazdu
+mimo że każdy z nas może sobie inaczej wyobrażać jego konkretną reprezentację. Może to być więc samochód, motocykl, rower a nawet autobus.
+Wszystkie wymienione przykłady mają wiele cech wspólnych ale równocześnie są zupełnie niepodobne do siebie, a także ich zastosowania
+są zupełnie różne.
+
+Jak oddać to skomplikowanie a zarazem prostotę w strukturze obiektów? Naprzeciw naszym oczekiwaniom wychodzi pojęcie
+dziedziczenia. Próbując dedukować na podstawie nazwy, możemy wywnioskować że dziedziczenie polega na przekazywaniu pewnych
+własności przez obiekty obiektomo potomnym. Co to oznacza? W przełożeniu na obiekty oznacza to że obiekt potomny ma dostęp
+do danych i metod obiektu nadrzednego. Wszystko ładnie ale co to jest obiekt nadrzedny i obiekt potomny?
+
+Zobaczmy to na przykładzie.
+
+class Pojazd {
+    public void jedzDoPrzodu(){
+        System.out.println("Jade do przodu");
+    }
+
+    public void jedzDoTylu(){
+        System.out.println("Jade do tyłu");
+    }
+}
+
+public class Samochod extends Pojazd {
+    public void testJazdy(){
+        jedzDoPrzodu();
+        jedzDoTylu();
+    }
+
+    public static void  main(String [] args){
+        Samochod samochod = new Samochod();
+        samochod.testJazdy();
+    }
+}
+
+Spróbojmy najpierw uruchomić ten program i zobaczyć wynik jego działania. Jesli wsyzstko poszło dobrze to powinniśmy zobaczyć:
+
+Jade do przodu
+Jade do tyłu
+
+Co to oznacza? I dlaczego to działa? Przecież klasa (ani też obiekt) Samochod nie posiada metod jedzDoPrzodu ani jedzDoTylu.
+Dlaczego może on używać klas obiektu Pojazd bez odwoływania się do tego obiektu?
+Wszystko załatwia dla nas słowo kluczowe 'extends'. Cała linia
+public class Samochod extends Pojazd powoduje że klasa Samochod staje się klasą dziecziczącą po klasie Pojazd. Oznacza to że ma
+dostęp do jej zmiennych i metod. Oznacza to ni mniej ni więcej że klasa Samochod może dowolnie wołac metody klasy Pojazd i używać jej zmienych w swoich własnych metodach.
+
+Zobaczmy następny przykład:
+class Pojazd {
+    public String numerRejestracyjny = "KRA111";
+
+    public void jedzDoPrzodu(){
+        System.out.println("Jade do przodu");
+    }
+
+    public void jedzDoTylu(){
+        System.out.println("Jade do tyłu");
+    }
+
+}
+
+public class Samochod extends Pojazd {
+    public void wyswietlNumerRejestracyjny(){
+        System.out.println(numerRejestracyjny);
+    }
+
+    public void testJazdy(){
+        jedzDoPrzodu();
+        jedzDoTylu();
+    }
+
+    public static void  main(String [] args){
+        Samochod samochod = new Samochod();
+        samochod.wyswietlNumerRejestracyjny();
+        samochod.testJazdy();
+    }
+}
+
+Wprowadzilismy tutaj do klasy Pojazd zmienną numerRejestracyjny, i jak widać w kodzie  możemy się do niej odwołać z metody klasy Samochod.
+Możemy nawet zmienić wartość tej zmiennej, co czytelniku wykonaj jako ćwiczenie.
+
+Teraz pytanie? Czy klasa potomna może stać się klasą bazową? Czyli innymi słowy czy możemy dziedziczyć po klasie która już dziedziczyła?
+Odpowiedź brzmi tak. Co więcej nie ma żadnego ograniczenia na ilośc takich dziedziczeń. Jedyne ograniczenie z jakim tutaj mamy do czynienia jest inne ale niezwykle istotne.
+
+Nie można dziedziczyć z dwóch klas równocześnie.
+
+Rozbdujmy zatem nasz przykład:
+
+class Pojazd {
+    public String numerRejestracyjny = "KRA111";
+
+    public void jedzDoPrzodu(){
+        System.out.println("Jade do przodu");
+    }
+
+    public void jedzDoTylu(){
+        System.out.println("Jade do tyłu");
+    }
+
+}
+
+class Samochod extends Pojazd {
+    public void wyswietlNumerRejestracyjny(){
+        System.out.println(numerRejestracyjny);
+    }
+
+    public void testJazdy(){
+        jedzDoPrzodu();
+        jedzDoTylu();
+    }
+
+}
+
+public class Ferrari extends Samochod{
+
+    public void wyswietlMarkeINumerRejestracyjny(){
+        System.out.println("Jestem Ferrari o numerze rejestracyjnym: "+numerRejestracyjny);
+    }
+
+    public static void  main(String [] args){
+        Ferrari ferrari = new Ferrari();
+        ferrari.wyswietlMarkeINumerRejestracyjny();
+        ferrari.testJazdy();
+    }
+}
+
+Jeśli go uruchomimy powinniśmy otrzymać następujący wynik:
+
+Jestem Ferrari o numerze rejestracyjnym: KRA111
+Jade do przodu
+Jade do tyłu
+
+O czym to świadczy? O tym że Klasa Ferrari która dziedziczy po klasie Samochod ma dostęp nie tylko do metod klasy Samochod (z której bezpośrednio dziedziczy)
+ale także z klasy Pojazd po  której dziedziczy poprzez klasę Samochód.
+
+Oznaca to że najniżej położona w hierarchii klasa ma dostep do wszystkich metod i zmiennych klas nadrzędnych bez względu na to ile ich jest.
