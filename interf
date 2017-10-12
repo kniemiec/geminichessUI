@@ -1,0 +1,132 @@
+Interfejsy i klasy abstrakcyjne
+
+Na poprzednich lekcjach poznaliśmy pojęcie klasy, jako pewnego rodzaju przepisu na obiekt który składa się z danych oraz metod na nim operujących
+oraz obiektów - czyli egzemplarzy stworzonych według tego przepsiu. Poznaliśmy równiez czym jest dziedziczenie, czyli przekazywanie danych i
+zachowania z klas bazowych do potomnych (dziedziczących).
+Jak widzieliśm w poprzedniej lekcji dziedziczenie przydaje się do tworzenia hierarchii obiektów od najbardziej ogólnych do wyspecjalizowanych tak jak w
+omawianym przykładzie Pojazd -> Samochod -> Ferrari. W takim przypadku Samochód jest specjalizacją Pojazdu, a z kolei Ferrari jest specjalizacją Samochodu.
+Odwrotnie Pojazd jest generalizacją Samochodu, a samochod generalizacją Ferrari.
+Takie podejście dziala dobrze w wielu przypadkach, ale nie sprawdza się w przypadku takich danych (bądź zachowania) ktore trudno zdefiniować dla klasy nadrzędnej.
+Weźmy na przykład ilość biegów w naszym pojezdzie. W zależności od tego z jakim konkretnym pojazdem do czynienia wartość ta będzie inna co akurat zrozumiałe, ale
+istotniejsze jest to że dla klasy typu Pojazd (a nawet i Samochod) nie można tej wartości określić, poniewaz dla nieokreślonego rodzaju samochodu
+nie możemy zaimplementować metody podajIloscBiegow();
+
+ Z drugiej strony każdy obiekt określający konkretny pojazd taką wartość będzie mógł podać.
+
+ Rozwiązaniem takiego problemu są tak zwane klasy abstrakcyjne oraz metody abstrakcyjne.
+
+ Popatrzmy na następujący przyklad - zmieniony w porównaniu do wersji z poprzedniej lekcji:
+
+ abstract class Pojazd {
+    public String numerRejestracyjny = "KRA111";
+
+    public abstract void wyswietlIloscBiegow();
+
+    public abstract void wyswietlMarke();
+
+    public abstract void wyswietlNumerRejestracyjny();
+}
+
+abstract class Samochod extends Pojazd {
+
+    public void wyswietlNumerRejestracyjny(){
+        System.out.println("Numer rejestracyjny pojazdu" + numerRejestracyjny);
+    }
+}
+
+public class Ferrari extends Samochod{
+
+    public void wyswietlIloscBiegow(){
+        System.out.println("Ilosc biegow: "+6);
+    }
+
+    public void wyswietlMarke(){
+        System.out.println("Jestem Ferrari o numerze rejestracyjnym: "+numerRejestracyjny);
+    }
+
+    public static void  main(String [] args){
+        Pojazd ferrari = new Ferrari();
+        ferrari.wyswietlNumerRejestracyjny();
+        ferrari.wyswietlMarke();
+        ferrari.wyswietlIloscBiegow();
+    }
+}
+
+Zajmijmy sie najpierw klasa Pojazd. Zawiera ona słowo kluczowe abstract użyte na dwa sposoby.
+a) w deklaracji klasy (abstract class Pojazd) - oznacza to że klasa która tworzymy jest abstrakcyjna - a precyzyjniej mówiąc że nie
+można stworzyć jej instancji (egzemplarza, albo inaczej obiektu takiego typu - przez new Pojazd()) ponieważ jej implementacja jest niekomplenta
+b) w deklaracji metody (public abstract void wyswietlMarke)  - to jest właśnie deklaracja niepełności implementacji. Określamy w ten sposób
+że ta klasa ma metodę abstrakcyjną czyli taką która nie ma implementacji, a to oznacza że nie możemy stworzyć obiektu tej klasy.
+Ważne jest że w klasie abstrakcyjnej zawsze przynajmniej jedna metoda musi być abstrakcyjna.
+
+Teraz kolej na klase Pojazd. Widać że ta klasa również jest abstrakcyjna, jest tak dlatego że dziedziczy ona po klasie abstrakcyjnej
+a równocześnie nie implementuje wszystkich metod nie zaimplementowanych w klasie bazowej - implementuje tylko jedną z nich. Powoduje to że klasa ta jest w analogiczny sposób niekompletna i jako
+taka musi być oznaczona jako abstract.
+
+Wreszcie kolej na klasę Ferrari. Jak widać nie jest ona abstrakcyjna - implementuje dwie metody abstrakcyjne z klasy Pojazd, a trzecia metoda jest zaimplementowana  w klasie Samochód.
+Zatem implementacja klasy Ferrari jest kompletna i można tworzyć jej instancje (egzemplarz).
+Widzimy tutaj jeszcze jedną istotną rzecz. Zmienna ferrari jest typu Pojazd mimo że tworzymy obiekt typu Ferrari. Jest to możliwe dlatego że
+klasa Ferrari rozszerza (czyli dziedziczy po) typie Pojazd. Konsekwencją tego jest fakt że na obiekdzie ferrari możemy wołać tylko metody
+dostępne w klasie Pojazd. Przykładowo mimo ze dodamy do klasy Ferrari metode wyswietlIloscCylindrow, nie będziemy mogli jej zawołać na obiekcie typu Pojazd.
+
+Jak więc widać klasa abstrakcyjna jest kolejnym elementem ułatwiającym nam tworzenie struktur obiektów czyli próbie odwzorowania realnego świata, a więc i realnych probelmów biznesowych które
+nasz probram będzie rozwiązywał. Niestety klasa abstrakcyjna nie uwalnia nas od jednego ograniczenia, nadal nie możemy dziedziczyć po więcej niż jednej klasnie,
+nawet jeśli jest to klasa abstrakcyjna.
+
+Naprzeciw wychodzi nam struktura nazywana w Javie interfejsem. Zobaczmy następujący przykład:
+
+interface Pojazd {
+    void wyswietlIloscBiegow();
+    void wyswietlMarke();
+    void wyswietlNumerRejestracyjny();
+}
+
+
+Struktura ta nie przypomina w żadnym stopniu klasy ani klasy abstrakcyjnej, a jednak w pewnym sensie przypomina klasę abstrakcyjną która ma wszystkie metody abstrakcyjne (ale bez użycia słowa kluczowego abstract).
+W dużym uproszczeniu tak jest - słowo kluczowe interface mówi że definiujemy tutaj coś co nie jest klasą i nie można stworzyć jego instancji, a co więcej nie będzie miało żadnej zaimplementowanej metody.
+Wszystkie metody interfejsu są abstrakcyjne - a więc niekomplente.
+Ale to nie wszystko - interfejs ma jedną niewątpliwą zalete, klasa możne używać (implementować) dowolną ilość interfejsów. Jak w przykładzie:
+
+interface Pojazd {
+    void wyswietlIloscBiegow();
+    void wyswietlMarke();
+}
+
+interface PojazdZarejestrowany {
+    void wyswietlNumerRejestracyjny();
+}
+
+abstract class Samochod implements Pojazd, PojazdZarejestrowany {
+
+    public String numerRejestracyjny;
+
+    public void wyswietlNumerRejestracyjny(){
+        System.out.println("Numer rejestracyjny pojazdu" + numerRejestracyjny);
+    }
+}
+
+public class Ferrari extends Samochod{
+
+    public void wyswietlIloscBiegow(){
+        System.out.println("Ilosc biegow: "+6);
+    }
+
+    public void wyswietlMarke(){
+        System.out.println("Jestem Ferrari o numerze rejestracyjnym: "+numerRejestracyjny);
+    }
+
+    public static void  main(String [] args){
+        Pojazd ferrari = new Ferrari();
+        ferrari.wyswietlMarke();
+        ferrari.wyswietlIloscBiegow();
+
+        PojazdZarejestrowany ferrariZarejestrowane = new Ferrari();
+        ferrariZarejestrowane.wyswietlNumerRejestracyjny();
+
+    }
+}
+
+Widzimy ze zaszło tu sporo zmian w stosunku do poprzedniego przykładu.
+Po pierwsze Pojazd już nie jest klasą, jest interfejsem.
+Po drugie dodaliśmy nowy interfejs PojazdZarejestrowany - z jedną metoda. Głównie po to aby pokazać możliwość implementacji wielu interfejsów.
+Klasa Samochod 
