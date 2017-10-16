@@ -1,0 +1,21 @@
+String - typ i obiekt specjalny.
+
+Na lekcji na której zajmowaliśmy sie typami zmiennych wspomnieliśmy o szczególnym typie jakim jest typ String.
+Warto temu typowi poświęcić cała osobną lekcję ponieważ jest to typ szczególny.
+
+Zacznijmy od prostej deklaracji zmiennej typu String i przypisaniu jej wartości:
+
+String nazwa  = "Kurs Programowania w Java";
+
+Co się rzuca w oczy jako pierwsze. Mamy zmienną typu string, ale nie tworzymy obiektu pisząć new String(). Dlaczego nie musimy tego robić?
+Otóż ponieważ ten typ jest tak bardzo często używany, twórcy języka Java aby ułatwić programistom życie dodali składne która pozwala
+na taki skrócony zapis tworzenia obiektu typu String.
+Jest to dokładnie to samo co:
+
+String nazwa = new String("Kurs Programowania w Java");
+
+Mamy więc dwa sposoby tworzenia obiektów typu string, przy czym pierwszy jest wygodniejszy w użyciu.
+
+Co jeszcze wyjątkowego możemy powiedziec o zmiennej typu string? Jakkolwiek dziwnie to zabrzmi jest to prawdą. Obiekty typu String są
+immutable (czyli niezmienne). Co to oznacza w przypadku zmiennej? Otóż to że zawartości obiektu typu String niem można zmienić.
+String jest obiektem,
