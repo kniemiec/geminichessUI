@@ -1,0 +1,102 @@
+Klasy wewnetrzne i klasy anonimowe
+
+Klasy wewnętrzne.
+
+Znamy już pojęcie klasy oraz ograniczania dostępu do niej poprzez modyfikatory dostępu (public, protected, private).
+Ograniczanie dostępu (enkapsulacja albo hermetyzacja)  służy nam do pisania łatwiejszego do zrozumienia i utrzymania kodu programu więc jest generalnie
+rzeczą dobrą i bardzo przydatną. Jednak czasem przydatny jest dostęp do wszystkich danych i metod danej klasy, ale bez porzucania
+hermetyzacji - innymi słowy chcemy nadal aby inne klasy nie miały dostępu do tych danych ale równocześnie żeby pewna klasa ten dostęp posiadała.
+Na przeciw naszym oczekiwaniom wychodzą klasy wewnętrzne.
+Okazuje się że można stworzyć klasę w klasie. Jak na poniższym przykładzie.
+
+public class KlasaZewnetrzna {
+
+    private String stanKlasyZewnetrznej = "Naleze do klasy zewnetrznej";
+
+    public class KlasaWewnetrzna {
+
+        private String stanKlasyWewnetrznej = "Naleze do kalsy wewnetrznej";
+
+        public void wypiszStan(){
+            System.out.println(stanKlasyWewnetrznej);
+        }
+
+        public void wypiszStanKlasyZewnentrznej(){
+            System.out.println(stanKlasyZewnetrznej);
+        }
+    }
+
+    public static void main(String [] args){
+        KlasaZewnetrzna klasaZewnetrzna = new KlasaZewnetrzna();
+        KlasaWewnetrzna klasaWewnetrzna = klasaZewnetrzna.new KlasaWewnetrzna();
+        klasaWewnetrzna.wypiszStan();
+        klasaWewnetrzna.wypiszStanKlasyZewnentrznej();
+    }
+
+}
+
+ Przykład ten może wydać się dosyć skomplikowany, ale postaramy się go wyjaśnić:
+ a) zacznijmy od deklaracji KlasyWewnętrznej - nie ma tutaj nic zaskakującego oprócz tego że deklaracja ta ma miejsce wewnątrz innej klasy
+ ale po prostu jest to możliwe.
+ b) Zaletą takiego rozwiązania jest fakt że klasa wewnętrzna ma dostęp do prywatnych pól (zmiennych) klasy zewnętrznej.
+ c) Nieco inny jest sposób tworzenia takiej klasy z poza klasy zewnętrznej, jak widać w linii
+
+
+
+
+public class KlasaZewnetrzna {
+
+    private static String stanKlasyZewnetrznej = "Naleze do klasy zewnetrznej";
+
+    public static class KlasaWewnetrzna {
+
+        private String stanKlasyWewnetrznej = "Naleze do kalsy wewnetrznej";
+
+        public void wypiszStan(){
+            System.out.println(stanKlasyWewnetrznej);
+        }
+
+        public void wypiszStanKlasyZewnentrznej(){
+            System.out.println(stanKlasyZewnetrznej);
+        }
+    }
+
+    public static void main(String [] args){
+        KlasaWewnetrzna klasaWewnetrzna = new KlasaZewnetrzna.KlasaWewnetrzna();
+        klasaWewnetrzna.wypiszStan();
+        klasaWewnetrzna.wypiszStanKlasyZewnentrznej();
+    }
+
+}
+
+
+
+public class KlasaZewnetrzna {
+
+    private String stanKlasyZewnetrznej = "Naleze do klasy zewnetrznej";
+
+    public void wypiszStanUzywajacKlasyWewnetrznej(){
+        KlasaWewnetrzna klasaWewnetrzna = new KlasaWewnetrzna();
+        klasaWewnetrzna.wypiszStan();
+        klasaWewnetrzna.wypiszStanKlasyZewnentrznej();
+    }
+
+    private class KlasaWewnetrzna {
+
+        private String stanKlasyWewnetrznej = "Naleze do kalsy wewnetrznej";
+
+        public void wypiszStan(){
+            System.out.println(stanKlasyWewnetrznej);
+        }
+
+        public void wypiszStanKlasyZewnentrznej(){
+            System.out.println(stanKlasyZewnetrznej);
+        }
+    }
+
+    public static void main(String [] args){
+        KlasaZewnetrzna klasaZewnetrzna = new KlasaZewnetrzna();
+        klasaZewnetrzna.wypiszStanUzywajacKlasyWewnetrznej();
+    }
+
+}
